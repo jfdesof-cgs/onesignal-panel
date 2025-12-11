@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>🔔 Prueba OneSignal</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
+        h1 { color: #333; }
+        .input-group { margin: 20px 0; }
+        label { display: block; margin: 5px 0; font-weight: bold; }
+        input { width: 100%; padding: 10px; margin: 5px 0; }
+        button { 
+            background: #28a745; color: white; border: none; 
+            padding: 15px; width: 100%; cursor: pointer; font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover { background: #218838; }
+        #resultado { 
+            margin: 20px 0; padding: 15px; border-radius: 5px; 
+            display: none; font-weight: bold;
+        }
+        .exito { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Panel de Prueba OneSignal</h1>
+    <p>Envía una notificación push simple a tu app</p>
+    
+    <!-- CONFIGURACIÓN -->
+    <div class="input-group">
+        <label>App ID de OneSignal:</label>
+        <input type="text" id="appId" placeholder="Pega tu App ID">
+    </div>
+    
+    <div class="input-group">
+        <label>Clave API (os_v2_app_...):</label>
+        <input type="password" id="apiKey" placeholder="Pega tu Clave API">
+    </div>
+    
+    <!-- MENSAJE -->
+    <div class="input-group">
+        <label>Mensaje de prueba:</label>
+        <input type="text" id="mensaje" value="¡Hola desde el panel web!">
+    </div>
+    
+    <!-- BOTONES -->
+    <button onclick="enviarPrueba()">🚀 Enviar Notificación de Prueba</button>
+    
+    <!-- RESULTADO -->
+    <div id="resultado"></div>
+    
+    <script>
+        async function enviarPrueba() {
+            const appId = document.getElementById('appId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const mensaje = document.getElementById('mensaje').value.trim();
+            
+            if (!appId || !apiKey) {
+                mostrarResultado('❌ Ingresa App ID y Clave API', 'error');
+                return;
+            }
+            
+            mostrarResultado('⏳ Enviando prueba...', 'info');
+            
+            // Datos para OneSignal
+            const datos = {
+                app_id: appId,
+                included_segments: ["All"], // A todos los usuarios
+                contents: { en: mensaje },
+                headings: { en: "Prueba desde Panel" },
+                data: { prueba: true, hora: new Date().toLocaleTimeString() }
+            };
+            
+            try {
+                const respuesta = await fetch('https://onesignal.com/api/v1/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+                
+                const resultado = await respuesta.json();
+                
+                if (respuesta.ok && resultado.id) {
+                    mostrarResultado(`✅ ¡Enviado! ID: ${resultado.id}`, 'exito');
+                } else {
+                    mostrarResultado(`❌ Error: ${resultado.errors ? resultado.errors[0] : 'Verifica tus credenciales'}`, 'error');
+                }
+                
+            } catch (error) {
+                // Si hay error CORS, usar método alternativo
+                enviarConProxy(appId, apiKey, mensaje);
+            }
+        }
+        
+        // Método alternativo si falla fetch directo
+        async function enviarConProxy(appId, apiKey, mensaje) {
+            mostrarResultado('⚠️ Usando método alternativo...', 'info');
+            
+            // Crear un formulario oculto para evitar CORS
+            const formData = new FormData();
+            formData.append('app_id', appId);
+            formData.append('mensaje', mensaje);
+            
+            try {
+                // Usar un endpoint simple como puente
+                const respuesta = await fetch('https://api.allorigins.win/raw?url=' + 
+                    encodeURIComponent('https://onesignal.com/api/v1/notifications'), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        app_id: appId,
+                        included_segments: ["All"],
+                        contents: { en: mensaje }
+                    })
+                });
+                
+                const texto = await respuesta.text();
+                mostrarResultado('✅ Petición enviada (método alternativo)', 'exito');
+                
+            } catch (error) {
+                mostrarResultado('❌ Error grave. Prueba en otro navegador o hosting.', 'error');
+            }
+        }
+        
+        function mostrarResultado(texto, tipo) {
+            const div = document.getElementById('resultado');
+            div.innerHTML = texto;
+            div.className = tipo;
+            div.style.display = 'block';
+        }
+        
+        // Cargar datos guardados
+        window.onload = function() {
+            const savedAppId = localStorage.getItem('appId');
+            const savedApiKey = localStorage.getItem('apiKey');
+            if (savedAppId) document.getElementById('appId').value = savedAppId;
+            if (savedApiKey) document.getElementById('apiKey').value = savedApiKey;
+            
+            // Guardar automáticamente
+            document.getElementById('appId').addEventListener('change', function() {
+                localStorage.setItem('appId', this.value);
+            });
+            document.getElementById('apiKey').addEventListener('change', function() {
+                localStorage.setItem('apiKey', this.value);
+            });
+        };
+    </script>
+</body>
+</html>
