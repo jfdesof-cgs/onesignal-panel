@@ -77,7 +77,7 @@
                 const respuesta = await fetch('https://api.onesignal.com/notifications', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Key ${apiKey}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(datos)
@@ -112,7 +112,7 @@
                     encodeURIComponent('https://api.onesignal.com/notifications'), {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Key ${apiKey}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -155,4 +155,5 @@
     </script>
 </body>
 </html>
+
 
