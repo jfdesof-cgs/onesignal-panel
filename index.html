@@ -74,7 +74,7 @@
             };
             
             try {
-                const respuesta = await fetch('https://onesignal.com/api/v1/notifications', {
+                const respuesta = await fetch('https://api.onesignal.com/notifications', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${apiKey}`,
@@ -109,7 +109,7 @@
             try {
                 // Usar un endpoint simple como puente
                 const respuesta = await fetch('https://api.allorigins.win/raw?url=' + 
-                    encodeURIComponent('https://onesignal.com/api/v1/notifications'), {
+                    encodeURIComponent('https://api.onesignal.com/notifications'), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${apiKey}`,
@@ -155,3 +155,4 @@
     </script>
 </body>
 </html>
+
